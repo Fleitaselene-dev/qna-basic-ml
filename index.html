@@ -7,8 +7,9 @@
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/qna"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
   <style>
-    body { font-family: Arial, sans-serif; margin: 20px; background: #f4f4f4; }
-    textarea, input[type="text"] { width: 100%; padding: 10px; margin: 10px 0; box-sizing: border-box; }
+    /* body { font-family: Arial, sans-serif; margin: 20px; background: #f4f4f4; } */
+    body{ margin:0}
+    /* textarea, input[type="text"] { width: 100%; padding: 10px; margin: 10px 0; box-sizing: border-box; } */
     .resaltado { background-color: yellow; font-weight: bold; }
     #respuesta { font-size: 18px; margin-top: 10px; background: #fff; padding: 10px; border-radius: 5px; }
     #historial { margin-top: 20px; }
@@ -20,8 +21,58 @@
   </style>
 </head>
 <body>
-
-<h1>Modelo de Pregunta y Respuesta</h1>
+  <div class="container">
+    <div class="div1">
+      <textarea name="" id="passage">Google LLC is an American multinational technology company that focuses on search engine technology, online advertising, cloud computing, computer software, quantum computing, e-commerce, artificial intelligence, and consumer electronics. It has been referred to as the "most powerful company in the world" and one of the world's most valuable brands due to its market dominance, data collection, and technological advantages in the area of artificial intelligence. Google was founded in 1998 by Larry Page and Sergey Brin while they were Ph.D. students at Stanford University in California.</textarea>
+    </div>
+    <div class="div2">
+      <div class="chat"></div>
+      <div class="pregunta">
+        <input type="text" name="pregunta" id="question">
+        <button type="button" id="buscarBtn" onclick="preguntar()">Preguntar</button>
+      </div>
+    </div>
+  </div>
+<style>
+  body{
+    background-color: #EEEFE0;
+  }
+  .container{
+    margin:0;
+    padding: 0;
+    display:grid;
+    grid-template-columns: 20% 80%;
+    width: 100vw;
+    height: 100vh;
+  }
+  div{
+    display:flex;
+  }
+  .div1{
+    /* background-color:red; */
+    background-color: #EEEFE0;
+    border-right:  solid #A7C1A8;
+  }
+  .div2{
+    display:grid;
+    grid-template-rows: 80% 20%;
+  }
+  .pregunta{
+    display:flex;
+    justify-content: space-around;
+  }
+  [name="pregunta"]{
+    background-color: #D1D8BE;
+    width: 50%;
+    padding: 10px;
+    margin-bottom: 10px;
+    border: 2px #A7C1A8 solid;
+    outline: 0;
+    border-radius: 16px;
+    display:flex;
+  }
+</style>
+<!-- <h1>Modelo de Pregunta y Respuesta</h1>
 
 <label for="fileInput">Subir archivo (.txt o .pdf):</label>
 <input type="file" id="fileInput" accept=".txt,application/pdf" onchange="leerArchivo(event)">
@@ -39,14 +90,14 @@
 <div id="historial">
   <h3>Historial:</h3>
   <ul id="listaHistorial"></ul>
-</div>
+</div> -->
 <script src="env.js"></script>
 <script>
 let model;
 let modeloCargado = false;
 const passageTextarea = document.getElementById("passage");
-const respuestaDiv = document.getElementById("respuesta");
-const listaHistorial = document.getElementById("listaHistorial");
+// const respuestaDiv = document.getElementById("respuesta");
+// const listaHistorial = document.getElementById("listaHistorial");
 const buscarBtn = document.getElementById("buscarBtn");
 console.log("Acá",API_KEY)
 async function cargarModelo() {
@@ -55,11 +106,11 @@ async function cargarModelo() {
     model = await qna.load();
     modeloCargado = true;
     console.log("Modelo cargado exitosamente");
-    respuestaDiv.innerHTML = "Respuesta: <em>Modelo cargado. Haz una pregunta para comenzar.</em>";
+    // respuestaDiv.innerHTML = "Respuesta: <em>Modelo cargado. Haz una pregunta para comenzar.</em>";
     buscarBtn.disabled = false;
   } catch (error) {
     console.error("Error al cargar el modelo:", error);
-    respuestaDiv.innerHTML = "Error al cargar el modelo. Recarga la página.";
+    // respuestaDiv.innerHTML = "Error al cargar el modelo. Recarga la página.";
   }
 }
 
@@ -149,32 +200,35 @@ async function preguntar() {
   const passage = passageTextarea.value.trim();
   const preguntaES = document.getElementById("question").value.trim();
 
-  if (!modeloCargado) {
-    respuestaDiv.textContent = "El modelo aún se está cargando, espera un momento...";
-    return;
-  }
+  // if (!modeloCargado) {
+  //   respuestaDiv.textContent = "El modelo aún se está cargando, espera un momento...";
+  //   return;
+  // }
 
-  if (!preguntaES) {
-    respuestaDiv.textContent = "Por favor escribe una pregunta.";
-    return;
-  }
+  // if (!preguntaES) {
+  //   respuestaDiv.textContent = "Por favor escribe una pregunta.";
+  //   return;
+  // }
 
-  if (!passage) {
-    respuestaDiv.textContent = " Por favor proporciona un texto para analizar.";
-    return;
-  }
+  // if (!passage) {
+  //   respuestaDiv.textContent = " Por favor proporciona un texto para analizar.";
+  //   return;
+  // }
 
   try {
     buscarBtn.disabled = true;
-    respuestaDiv.innerHTML = "Buscando respuesta...";
+    // respuestaDiv.innerHTML = "Buscando respuesta...";
 
     // Traduce pregunta al inglés
     const preguntaEN = await traducir(preguntaES, "es", "en");
     console.log("Pregunta traducida al inglés:", preguntaEN);
     // passageES = await traducir(passage)
     // console.log("passage español:",passageES)
+
+    //Traducir el contexto a inglés
+    const passageEN = await traducir(passage,"auto","en")
     // Obtenie respuestas del modelo
-    const answers = await model.findAnswers(preguntaEN, passage);
+    const answers = await model.findAnswers(preguntaEN, passageEN);
     console.log("Respuestas encontradas:", answers);
 
     if (answers && answers.length > 0 && answers[0].score > 0.1) {
@@ -184,26 +238,28 @@ async function preguntar() {
       // Traduce la respuesta al español
       const respuestaES = await traducir(respuestaEN, "en", "es");
 
-      respuestaDiv.innerHTML = ` <strong>Respuesta:</strong> ${respuestaES}<br><small>Confianza: ${confianza}%</small>`;
+      // respuestaDiv.innerHTML = ` <strong>Respuesta:</strong> ${respuestaES}<br><small>Confianza: ${confianza}%</small>`;
       
       // Leerespuesta en voz alta
       leerTexto(respuestaES);
       
       // Agrega al historial
-      agregarHistorial(preguntaES, respuestaES);
+      // agregarHistorial(preguntaES, respuestaES);
       
       // Resalta texto en el documento
-      resaltarTexto(respuestaEN);
+      // resaltarTexto(respuestaEN);
       
       // Limpia la pregunta
       document.getElementById("question").value = "";
       
     } else {
-      respuestaDiv.innerHTML = "No se encontró una respuesta adecuada en el texto proporcionado.";
+      console.log("no se encontró una respuesta")
+      // respuestaDiv.innerHTML = "No se encontró una respuesta adecuada en el texto proporcionado.";
     }
   } catch (error) {
     console.error("Error al procesar pregunta:", error);
-    respuestaDiv.innerHTML = "Error al procesar la pregunta. Inténtalo de nuevo.";
+    // respuestaDiv.innerHTML = "Error al procesar la pregunta. Inténtalo de nuevo.";
+    console.log("Error al procesar la pregunta. Inténtalo de nuevo.")
   } finally {
     buscarBtn.disabled = false;
   }
