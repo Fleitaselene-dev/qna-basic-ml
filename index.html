@@ -1,43 +1,264 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
-    <meta charset="UTF-8">
-<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"> </script>
-<script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/qna"> </script>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+  <meta charset="UTF-8">
+  <title>Preguntas y Respuestas Inteligentes</title>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/qna"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; background: #f4f4f4; }
+    textarea, input[type="text"] { width: 100%; padding: 10px; margin: 10px 0; box-sizing: border-box; }
+    .resaltado { background-color: yellow; font-weight: bold; }
+    #respuesta { font-size: 18px; margin-top: 10px; background: #fff; padding: 10px; border-radius: 5px; }
+    #historial { margin-top: 20px; }
+    #passage { font-family: monospace; }
+    .loading { color: #666; font-style: italic; }
+    button { padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; }
+    button:hover { background: #0056b3; }
+    button:disabled { background: #ccc; cursor: not-allowed; }
+  </style>
 </head>
 <body>
-    
-<div style="display:flex; justify-content: center;flex-direction: column;">
-<textarea name="passage" id="" style="height: 30vh;width: 50%; align-self: center;margin:10px" >
-Google LLC is an American multinational technology company that specializes in Internet-related services and products, which include online advertising technologies, search engine, cloud computing, software, and hardware. It is considered one of the Big Four technology companies, alongside Amazon, Apple, and Facebook. Google was founded in September 1998 by Larry Page and Sergey Brin while they were Ph.D. students at Stanford University in California. Together they own about 14 percent of its shares and control 56 percent of the stockholder voting power through supervoting stock. They incorporated Google as a California privately held company on September 4, 1998, in California. Google was then reincorporated in Delaware on October 22, 2002. An initial public offering (IPO) took place on August 19, 2004, and Google moved to its headquarters in Mountain View, California, nicknamed the Googleplex. In August 2015, Google announced plans to reorganize its various interests as a conglomerate called Alphabet Inc. Google is Alphabet's leading subsidiary and will continue to be the umbrella company for Alphabet's Internet interests. Sundar Pichai was appointed CEO of Google, replacing Larry Page who became the CEO of Alphabet.
-    </textarea>
-    <div style="display:flex;flex-direction: row; height: 3vh;width: 30%;align-self: center;">
-        <input type="text" name="question" id="" style="display:flex; width: 70%;justify-self: center   ;">
-        <button onclick="preguntar()" style="width: 30%;">Buscar respuesta</button>
-    </div>
-    </div>
-</body>
+
+<h1>Modelo de Pregunta y Respuesta</h1>
+
+<label for="fileInput">Subir archivo (.txt o .pdf):</label>
+<input type="file" id="fileInput" accept=".txt,application/pdf" onchange="leerArchivo(event)">
+
+<label for="passage">Texto:</label>
+<textarea id="passage" rows="10" placeholder="Pega aquí el texto sobre el que quieres hacer preguntas...">Google LLC is an American multinational technology company that focuses on search engine technology, online advertising, cloud computing, computer software, quantum computing, e-commerce, artificial intelligence, and consumer electronics. It has been referred to as the "most powerful company in the world" and one of the world's most valuable brands due to its market dominance, data collection, and technological advantages in the area of artificial intelligence. Google was founded in 1998 by Larry Page and Sergey Brin while they were Ph.D. students at Stanford University in California.</textarea>
+
+<label for="question">Pregunta (en español):</label>
+<input type="text" id="question" placeholder="¿Quién fundó Google?" onkeypress="if(event.key==='Enter') preguntar()">
+
+<button id="buscarBtn" onclick="preguntar()">Buscar respuesta</button>
+
+<div id="respuesta">Respuesta: <span class="loading">Cargando modelo...</span></div>
+
+<div id="historial">
+  <h3>Historial:</h3>
+  <ul id="listaHistorial"></ul>
+</div>
+<script src="env.js"></script>
 <script>
-
-  const preguntar = () => {
-    //Passage lento es el contexto
-    const passage = document.querySelector("[name='passage']").textContent
-    //Y question es la cuestión ah
-    const question = document.querySelector("[name='question']").value
-
-    console.log(question)
-    qna.load().then(model => {
-        console.log("Modelo cargao")
-        model.findAnswers(question, passage).then(answers => {
-        console.log('Respostas: ', answers);
-        console.log('Resposta más acertada:', answers[0].text)
-      });
-    });
+let model;
+let modeloCargado = false;
+const passageTextarea = document.getElementById("passage");
+const respuestaDiv = document.getElementById("respuesta");
+const listaHistorial = document.getElementById("listaHistorial");
+const buscarBtn = document.getElementById("buscarBtn");
+console.log("Acá",API_KEY)
+async function cargarModelo() {
+  try {
+    console.log("Cargando modelo...");
+    model = await qna.load();
+    modeloCargado = true;
+    console.log("Modelo cargado exitosamente");
+    respuestaDiv.innerHTML = "Respuesta: <em>Modelo cargado. Haz una pregunta para comenzar.</em>";
+    buscarBtn.disabled = false;
+  } catch (error) {
+    console.error("Error al cargar el modelo:", error);
+    respuestaDiv.innerHTML = "Error al cargar el modelo. Recarga la página.";
+  }
 }
 
+// Inicializar
+buscarBtn.disabled = true;
+cargarModelo();
 
+// Traducción automática usando LibreTranslate
+async function traducir(texto, desde = "es", a = "en") {
+  try {
+    const response = await fetch("https://translation.googleapis.com/language/translate/v2", {
+      method: "POST",
+      headers: { "Content-Type": "application/json",
+        "x-goog-api-key": API_KEY
+       },
+      body: JSON.stringify({
+        q: texto,
+        source:desde,
+        target: a,
+        format: "text"
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error(`Error de traducción: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    return data.data.translations[0].translatedText || texto; // Fallback al texto original si falla
+  } catch (error) {
+    console.warn("Error en traducción, usando texto original:", error);
+    return texto; // Usa el texto original si falla la traducción
+  }
+}
+
+// Lectura por voz
+function leerTexto(texto) {
+  try {
+    if ('speechSynthesis' in window) {
+      const msg = new SpeechSynthesisUtterance(texto);
+      msg.lang = "es-ES";
+      msg.rate = 0.8;
+      window.speechSynthesis.speak(msg);
+    }
+  } catch (error) {
+    console.warn("Error en síntesis de voz:", error);
+  }
+}
+
+// Historial
+function agregarHistorial(pregunta, respuesta) {
+  const item = document.createElement("li");
+  item.innerHTML = `<strong> ${pregunta}</strong><br> ${respuesta}`;
+  item.style.marginBottom = "10px";
+  listaHistorial.insertBefore(item, listaHistorial.firstChild); // Agrega al inicio
+}
+
+// pesaltado en el texto 
+function resaltarTexto(textoRespuesta) {
+  const contenido = passageTextarea.textContent;
+  
+  // para  caracteres especiales para regex
+  const textoEscapado = textoRespuesta.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  
+  // Crea nueva regex
+  const regex = new RegExp(`(${textoEscapado})`, "gi");
+  
+  // un div temporal para mostrar el texto resaltado
+  const divResaltado = document.createElement("div");
+  divResaltado.innerHTML = contenido.replace(regex, '<span class="resaltado">$1</span>');
+  divResaltado.style.cssText = "margin-top: 10px; padding: 10px; background: white; border: 1px solid #ddd; border-radius: 5px;";
+  
+  // Remueve el resaltado anterior si existe
+  const resaltadoAnterior = document.getElementById("textoResaltado");
+  if (resaltadoAnterior) {
+    resaltadoAnterior.remove();
+  }
+  
+  divResaltado.id = "textoResaltado";
+  divResaltado.innerHTML = "<strong>📍 Texto con respuesta resaltada:</strong><br>" + divResaltado.innerHTML;
+  
+  // Inserta después del textarea
+  passageTextarea.parentNode.insertBefore(divResaltado, passageTextarea.nextSibling);
+}
+
+async function preguntar() {
+  const passage = passageTextarea.value.trim();
+  const preguntaES = document.getElementById("question").value.trim();
+
+  if (!modeloCargado) {
+    respuestaDiv.textContent = "El modelo aún se está cargando, espera un momento...";
+    return;
+  }
+
+  if (!preguntaES) {
+    respuestaDiv.textContent = "Por favor escribe una pregunta.";
+    return;
+  }
+
+  if (!passage) {
+    respuestaDiv.textContent = " Por favor proporciona un texto para analizar.";
+    return;
+  }
+
+  try {
+    buscarBtn.disabled = true;
+    respuestaDiv.innerHTML = "Buscando respuesta...";
+
+    // Traduce pregunta al inglés
+    const preguntaEN = await traducir(preguntaES, "es", "en");
+    console.log("Pregunta traducida al inglés:", preguntaEN);
+    // passageES = await traducir(passage)
+    // console.log("passage español:",passageES)
+    // Obtenie respuestas del modelo
+    const answers = await model.findAnswers(preguntaEN, passage);
+    console.log("Respuestas encontradas:", answers);
+
+    if (answers && answers.length > 0 && answers[0].score > 0.1) {
+      const respuestaEN = answers[0].text;
+      const confianza = Math.round(answers[0].score * 100);
+      
+      // Traduce la respuesta al español
+      const respuestaES = await traducir(respuestaEN, "en", "es");
+
+      respuestaDiv.innerHTML = ` <strong>Respuesta:</strong> ${respuestaES}<br><small>Confianza: ${confianza}%</small>`;
+      
+      // Leerespuesta en voz alta
+      leerTexto(respuestaES);
+      
+      // Agrega al historial
+      agregarHistorial(preguntaES, respuestaES);
+      
+      // Resalta texto en el documento
+      resaltarTexto(respuestaEN);
+      
+      // Limpia la pregunta
+      document.getElementById("question").value = "";
+      
+    } else {
+      respuestaDiv.innerHTML = "No se encontró una respuesta adecuada en el texto proporcionado.";
+    }
+  } catch (error) {
+    console.error("Error al procesar pregunta:", error);
+    respuestaDiv.innerHTML = "Error al procesar la pregunta. Inténtalo de nuevo.";
+  } finally {
+    buscarBtn.disabled = false;
+  }
+}
+
+// * Lectura de archivo 
+async function leerArchivo(event) {
+  const archivo = event.target.files[0];
+  if (!archivo) return;
+
+  try {
+    if (archivo.type === "text/plain") {
+      const texto = await archivo.text();
+      passageTextarea.value = texto;
+      respuestaDiv.innerHTML = "Archivo de texto cargado correctamente.";
+      
+    } else if (archivo.type === "application/pdf") {
+      respuestaDiv.innerHTML = "Procesando PDF...";
+      
+      const reader = new FileReader();
+      reader.onload = async function () {
+        try {
+          const typedarray = new Uint8Array(reader.result);
+          
+          // Configura PDF.js
+          pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
+          
+          const pdf = await pdfjsLib.getDocument(typedarray).promise;
+          let textoCompleto = "";
+          
+          for (let i = 1; i <= pdf.numPages; i++) {
+            const page = await pdf.getPage(i);
+            const content = await page.getTextContent();
+            const textItems = content.items.map(item => item.str).join(" ");
+            textoCompleto += textItems + "\n\n";
+          }
+          
+          passageTextarea.value = textoCompleto.trim();
+          respuestaDiv.innerHTML = `PDF procesado correctamente. ${pdf.numPages} páginas leídas.`;
+          
+        } catch (error) {
+          console.error("Error al procesar PDF:", error);
+          respuestaDiv.innerHTML = "Error al procesar el PDF.";
+        }
+      };
+      reader.readAsArrayBuffer(archivo);
+      
+    } else {
+      alert("Formato no soportado. Solo se permiten archivos .txt o .pdf");
+    }
+  } catch (error) {
+    console.error("Error al leer archivo:", error);
+    respuestaDiv.innerHTML = "Error al leer el archivo.";
+  }
+}
 </script>
+</body>
 </html>
