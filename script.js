@@ -202,10 +202,10 @@ async function leerArchivo(event) {
     if (archivo.type === "text/plain") {
       const texto = await archivo.text();
       passageTextarea.value = texto;
-      respuestaDiv.innerHTML = "Archivo de texto cargado correctamente.";
+      toast("Archivo de texto cargado correctamente.")
       
     } else if (archivo.type === "application/pdf") {
-      respuestaDiv.innerHTML = "Procesando PDF...";
+      toast("Procesando PDF...")
       
       const reader = new FileReader();
       reader.onload = async function () {
@@ -226,11 +226,11 @@ async function leerArchivo(event) {
           }
           
           passageTextarea.value = textoCompleto.trim();
-          respuestaDiv.innerHTML = `PDF procesado correctamente. ${pdf.numPages} páginas leídas.`;
+          toast(`PDF procesado correctamente. ${pdf.numPages} páginas leídas.`)
           
         } catch (error) {
           console.error("Error al procesar PDF:", error);
-          respuestaDiv.innerHTML = "Error al procesar el PDF.";
+          toast("Error al procesar el PDF.")
         }
       };
       reader.readAsArrayBuffer(archivo);
@@ -240,7 +240,7 @@ async function leerArchivo(event) {
     }
   } catch (error) {
     console.error("Error al leer archivo:", error);
-    respuestaDiv.innerHTML = "Error al leer el archivo.";
+    toast("Error al leer el archivo.")
   }
 }
 
