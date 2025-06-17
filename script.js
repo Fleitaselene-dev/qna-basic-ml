@@ -1,45 +1,52 @@
+// !  Carga y configuración del modelo
 let model;
 let modeloCargado = false;
-let historial = []
+let historial = [];
+
 const passageTextarea = document.getElementById("passage");
-// const respuestaDiv = document.getElementById("respuesta");
-// const listaHistorial = document.getElementById("listaHistorial");
 const buscarBtn = document.getElementById("buscarBtn");
+
+// * Desactiva el botón hasta que el modelo esté listo
+buscarBtn.disabled = true;
+
+// * Carga el  modelo QnA de TensorFlow.js
+
 async function cargarModelo() {
   try {
     console.log("Cargando modelo...");
-    model = await qna.load();
+    model = await qna.load(); // * Carga asincrónica del modelo de preguntas y respuestas
     modeloCargado = true;
     console.log("Modelo cargado exitosamente");
-    toast("Modelo cargado. Haz una pregunta para comenzar")
-    // respuestaDiv.innerHTML = "Respuesta: <em>Modelo cargado. Haz una pregunta para comenzar.</em>";
+    toast("Modelo cargado. Haz una pregunta para comenzar");
     buscarBtn.disabled = false;
   } catch (error) {
     console.error("Error al cargar el modelo:", error);
-    // respuestaDiv.innerHTML = "Error al cargar el modelo. Recarga la página.";
   }
 }
 
 
-function toast(texto){
-  const toast = document.createElement("div")
-  toast.className = "toast"
-  toast.textContent = texto
-  toast.addEventListener("click",()=> toast.remove())
-  document.body.appendChild(toast)
-}
-// Inicializar
-buscarBtn.disabled = true;
 cargarModelo();
 
-// Traducción automática usando LibreTranslate
+// * Muestra notificación tipo toast
+
+function toast(texto) {
+  const toast = document.createElement("div");
+  toast.className = "toast";
+  toast.textContent = texto;
+  toast.addEventListener("click", () => toast.remove());
+  document.body.appendChild(toast);
+}
+
+// * Traduce texto usando API de Google Translate
+
 async function traducir(texto, desde = "es", a = "en") {
   try {
     const response = await fetch("https://translation.googleapis.com/language/translate/v2", {
       method: "POST",
-      headers: { "Content-Type": "application/json",
+      headers: {
+        "Content-Type": "application/json",
         "x-goog-api-key": API_KEY
-       },
+      },
       body: JSON.stringify({
         q: texto,
         target: a,
@@ -47,30 +54,31 @@ async function traducir(texto, desde = "es", a = "en") {
       })
     });
 
-    if (!response.ok) {
-      throw new Error(`Error de traducción: ${response.status}`);
-    }
-    
+    if (!response.ok) throw new Error(`Error de traducción: ${response.status}`);
+
     const data = await response.json();
-    return data.data.translations[0].translatedText || texto; // Fallback al texto original si falla
+    return data.data.translations[0].translatedText || texto;
   } catch (error) {
     console.warn("Error en traducción, usando texto original:", error);
-    return texto; // Usa el texto original si falla la traducción
+    return texto; 
   }
 }
 
+// ! Actualiza chat visual en la interfaz
 
-function actualizarChat(){
-  const grid = document.querySelector(".grid1")
-  const mensaje = document.createElement("div")
-  historial.map((msg,i)=>{
-    console.log(i)
-    mensaje.className = (i % 2 == 0) ? "msgPregunta" : "msgRespuesta"
-    mensaje.innerText = msg
-    grid.appendChild(mensaje)
-  })
+function actualizarChat() {
+  const grid = document.querySelector(".grid1");
+  const mensaje = document.createElement("div");
+
+  historial.map((msg, i) => {
+    mensaje.className = (i % 2 === 0) ? "msgPregunta" : "msgRespuesta";
+    mensaje.innerText = msg;
+    grid.appendChild(mensaje);
+  });
 }
-// Lectura por voz
+
+// *  Leer texto con voz (SpeechSynthesis)
+
 function leerTexto(texto) {
   try {
     if ('speechSynthesis' in window) {
@@ -84,164 +92,104 @@ function leerTexto(texto) {
   }
 }
 
-// Historial
-function agregarHistorial(pregunta, respuesta) {
-  const item = document.createElement("li");
-  item.innerHTML = `<strong> ${pregunta}</strong><br> ${respuesta}`;
-  item.style.marginBottom = "10px";
-  listaHistorial.insertBefore(item, listaHistorial.firstChild); // Agrega al inicio
-}
 
-// pesaltado en el texto 
-function resaltarTexto(textoRespuesta) {
-  const contenido = passageTextarea.textContent;
-  
-  // para  caracteres especiales para regex
-  const textoEscapado = textoRespuesta.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  
-  // Crea nueva regex
-  const regex = new RegExp(`(${textoEscapado})`, "gi");
-  
-  // un div temporal para mostrar el texto resaltado
-  const divResaltado = document.createElement("div");
-  divResaltado.innerHTML = contenido.replace(regex, '<span class="resaltado">$1</span>');
-  divResaltado.style.cssText = "margin-top: 10px; padding: 10px; background: white; border: 1px solid #ddd; border-radius: 5px;";
-  
-  // Remueve el resaltado anterior si existe
-  const resaltadoAnterior = document.getElementById("textoResaltado");
-  if (resaltadoAnterior) {
-    resaltadoAnterior.remove();
-  }
-  
-  divResaltado.id = "textoResaltado";
-  divResaltado.innerHTML = "<strong>📍 Texto con respuesta resaltada:</strong><br>" + divResaltado.innerHTML;
-  
-  // Inserta después del textarea
-  passageTextarea.parentNode.insertBefore(divResaltado, passageTextarea.nextSibling);
-}
+// ! Procesa pregunta y obtiene respuesta del modelo
 
 async function preguntar() {
   const passage = passageTextarea.value.trim();
   const preguntaES = document.getElementById("question").value.trim();
 
   if (!modeloCargado) {
-    toast("El model aún se está cargando, espera un momento...")
+    toast("El modelo aún se está cargando, espera un momento...");
     return;
   }
 
-  // if (!preguntaES) {
-  //   respuestaDiv.textContent = "Por favor escribe una pregunta.";
-  //   return;
-  // }
-
-  // if (!passage) {
-  //   respuestaDiv.textContent = " Por favor proporciona un texto para analizar.";
-  //   return;
-  // }
-
   try {
     buscarBtn.disabled = true;
-    // respuestaDiv.innerHTML = "Buscando respuesta...";
 
-    // Traduce pregunta al inglés
+    // * Traduce pregunta y contexto al inglés
     const preguntaEN = await traducir(preguntaES, "es", "en");
-    console.log("Pregunta traducida al inglés:", preguntaEN);
-    // passageES = await traducir(passage)
-    // console.log("passage español:",passageES)
-    historial.push(preguntaES)
-    actualizarChat()
-    //Traducir el contexto a inglés
-    const passageEN = await traducir(passage,"auto","en")
-    // Obtenie respuestas del modelo
+    historial.push(preguntaES);
+    actualizarChat();
+
+    const passageEN = await traducir(passage, "auto", "en");
+
+    // * Consulta al modelo
     const answers = await model.findAnswers(preguntaEN, passageEN);
     console.log("Respuestas encontradas:", answers);
 
     if (answers && answers.length > 0 && answers[0].score > 0.1) {
       const respuestaEN = answers[0].text;
-      const confianza = Math.round(answers[0].score * 100);
-      
-      // Traduce la respuesta al español
       const respuestaES = await traducir(respuestaEN, "en", "es");
 
-      // respuestaDiv.innerHTML = ` <strong>Respuesta:</strong> ${respuestaES}<br><small>Confianza: ${confianza}%</small>`;
-      
-      // Leerespuesta en voz alta
-      leerTexto(respuestaES);
-      
-      // Agrega al historial
-      // agregarHistorial(preguntaES, respuestaES);
-      historial.push(respuestaES)
-      actualizarChat()
-      // Resalta texto en el documento
-      // resaltarTexto(respuestaEN);
-      
-      // Limpia la pregunta
+      leerTexto(respuestaES); // * Lectura en voz alta
+      historial.push(respuestaES);
+      actualizarChat();
+
+      // * Limpia input
       document.getElementById("question").value = "";
+
       
+
     } else {
-      console.log("no se encontró una respuesta")
-      historial.push("No se encontró una respuesta.")
-      toast("No se encontró una respuesta adecuada en el texto proporcionado.")
-      // respuestaDiv.innerHTML = "No se encontró una respuesta adecuada en el texto proporcionado.";
+      historial.push("No se encontró una respuesta.");
+      toast("No se encontró una respuesta adecuada en el texto proporcionado.");
     }
   } catch (error) {
     console.error("Error al procesar pregunta:", error);
-    // respuestaDiv.innerHTML = "Error al procesar la pregunta. Inténtalo de nuevo.";
-    console.log("Error al procesar la pregunta. Inténtalo de nuevo.")
+    toast("Error al procesar la pregunta.");
   } finally {
     buscarBtn.disabled = false;
   }
 }
 
-// * Lectura de archivo 
+// ! Lee archivo .txt o .pdf y cargar contenido al textarea
 async function leerArchivo(event) {
   const archivo = event.target.files[0];
   if (!archivo) return;
 
   try {
     if (archivo.type === "text/plain") {
+      // * Carga archivo de texto plano
       const texto = await archivo.text();
       passageTextarea.value = texto;
-      toast("Archivo de texto cargado correctamente.")
-      
+      toast("Archivo de texto cargado correctamente.");
     } else if (archivo.type === "application/pdf") {
-      toast("Procesando PDF...")
-      
+      toast("Procesando PDF...");
+
       const reader = new FileReader();
       reader.onload = async function () {
         try {
           const typedarray = new Uint8Array(reader.result);
-          
-          // Configura PDF.js
           pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
-          
+
           const pdf = await pdfjsLib.getDocument(typedarray).promise;
           let textoCompleto = "";
-          
+
           for (let i = 1; i <= pdf.numPages; i++) {
             const page = await pdf.getPage(i);
             const content = await page.getTextContent();
             const textItems = content.items.map(item => item.str).join(" ");
             textoCompleto += textItems + "\n\n";
           }
-          
+
           passageTextarea.value = textoCompleto.trim();
-          toast(`PDF procesado correctamente. ${pdf.numPages} páginas leídas.`)
-          
+          toast(`PDF procesado correctamente. ${pdf.numPages} páginas leídas.`);
         } catch (error) {
           console.error("Error al procesar PDF:", error);
-          toast("Error al procesar el PDF.")
+          toast("Error al procesar el PDF.");
         }
       };
+
       reader.readAsArrayBuffer(archivo);
-      
     } else {
       alert("Formato no soportado. Solo se permiten archivos .txt o .pdf");
     }
   } catch (error) {
     console.error("Error al leer archivo:", error);
-    toast("Error al leer el archivo.")
+    toast("Error al leer el archivo.");
   }
 }
 
-actualizarChat()
+// * Actualiza la interfaz de chat al inicio
+actualizarChat();
