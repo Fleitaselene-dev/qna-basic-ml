@@ -24,7 +24,6 @@ async function cargarModelo() {
   }
 }
 
-
 cargarModelo();
 
 // * Muestra notificación tipo toast

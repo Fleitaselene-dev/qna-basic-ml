@@ -1,7 +1,7 @@
 body {
   margin: 0;
   font-family: 'Times New Roman', Times, serif;
-  background-color: #fdf9fc;
+  background-color:#ffe7f1;;
   color: #202124;
 }
 
@@ -10,12 +10,13 @@ body {
   grid-template-columns: 22% 78%;
   height: 100vh;
   overflow: hidden;
+ ;
 }
 
 .div1 {
   background-color: #ffe7f1;
   padding: 24px;
-  border-right: 1px solid #e6cfe6;
+  border: 1px solid #ddafdc;
   display: flex;
   flex-direction: column;
   gap: 20px;
@@ -25,13 +26,12 @@ body {
   padding: 8px;
   border: none;
   border-radius: 8px;
-  background-color: #fff;
   cursor: pointer;
   box-shadow: 0 1px 3px rgba(186, 110, 185, 0.2);
   transition: box-shadow 0.3s ease;
 }
 #fileInput:hover {
-  box-shadow: 0 2px 6px rgba(186, 110, 185, 0.3);
+  box-shadow: 0 2px 6px rgba(217, 128, 216, 0.3);
 }
 
 textarea#passage {
@@ -39,7 +39,7 @@ textarea#passage {
   overflow-y: auto;
   background-color: #fff;
   padding: 1rem;
-  border: 1px solid #e2c2e9;
+  border: 1px solid #ddafdc;
   border-radius: 12px;
   font-size: 14px;
   line-height: 1.6;
@@ -50,11 +50,12 @@ textarea#passage {
 }
 
 #passage::-webkit-scrollbar {
-  width: 6px;
+  width: 4px;
 }
 #passage::-webkit-scrollbar-thumb {
-  background-color: #ba6eb9;
+  background-color: #ddafdc;
   border-radius: 10px;
+  cursor: pointer;
 }
 
 .div2 {
@@ -74,6 +75,7 @@ textarea#passage {
   padding: 12px;
   max-height: calc(100vh - 160px); 
   scroll-behavior: smooth;
+  border-bottom: 1px solid #ddafdc;
 }
 .grid2 {
   display: flex;
@@ -85,7 +87,7 @@ textarea#passage {
 
 .preguntadiv {
   background-color: #ffe7f1;
-  border: 1px solid #ba6eb9;
+  border: 1px solid #ddafdc;
   border-radius: 20px;
   padding: 12px 16px;
   width: 60%;
