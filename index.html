@@ -2,23 +2,13 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
+<link rel="shortcut icon" href="https://cdn3d.iconscout.com/3d/premium/thumb/lindo-robot-libro-de-lectura-5665783-4721944.png?f=webp" type="image/x-icon">
   <title>Preguntas y Respuestas Inteligentes</title>
+  <link rel="stylesheet" href="style.css">
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/qna"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
-  <style>
-    /* body { font-family: Arial, sans-serif; margin: 20px; background: #f4f4f4; } */
-    body{ margin:0}
-    /* textarea, input[type="text"] { width: 100%; padding: 10px; margin: 10px 0; box-sizing: border-box; } */
-    .resaltado { background-color: yellow; font-weight: bold; }
-    #respuesta { font-size: 18px; margin-top: 10px; background: #fff; padding: 10px; border-radius: 5px; }
-    #historial { margin-top: 20px; }
-    #passage { font-family: monospace; }
-    .loading { color: #666; font-style: italic; }
-    /* button { padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; }
-    button:hover { background: #0056b3; }
-    button:disabled { background: #ccc; cursor: not-allowed; } */
-  </style>
+
 </head>
 <body>
   <div class="container">
@@ -39,175 +29,15 @@
                 <svg width="14" height="16" viewBox="0 0 14 16" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <path fill-rule="evenodd" clip-rule="evenodd" d="M7 16c-.595 0-1.077-.462-1.077-1.032V1.032C5.923.462 6.405 0 7 0s1.077.462 1.077 1.032v13.936C8.077 15.538 7.595 16 7 16z" fill="currentColor"></path>
                   <path fill-rule="evenodd" clip-rule="evenodd" d="M.315 7.44a1.002 1.002 0 0 1 0-1.46L6.238.302a1.11 1.11 0 0 1 1.523 0c.421.403.421 1.057 0 1.46L1.838 7.44a1.11 1.11 0 0 1-1.523 0z" fill="currentColor"></path><path fill-rule="evenodd" clip-rule="evenodd" d="M13.685 7.44a1.11 1.11 0 0 1-1.523 0L6.238 1.762a1.002 1.002 0 0 1 0-1.46 1.11 1.11 0 0 1 1.523 0l5.924 5.678c.42.403.42 1.056 0 1.46z" fill="currentColor"></path></svg>
-          </div></div></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
         </div>
       </div>
     </div>
   </div>
-<style>
-  .div1{
-    display:flex;
-    flex-direction: column;
-    height: 100%;
-  }
-  .div1>textarea{
-    height: 50%;
-  }
-  .div1>input{
-    display: flex;
-    justify-self: center;
-    height: 50%;
-  }
-  body{
-    background-color: #EEEFE0;
-  }
-  .container{
-    margin:0;
-    padding: 0;
-    display:grid;
-    grid-template-columns: 20% 80%;
-    width: 100vw;
-    height: 100vh;
-  }
-  div{
-    display:flex;
-  }
-  .div1{
-    /* background-color:red; */
-    background-color: #EEEFE0;
-    border-right:  solid #A7C1A8;
-  }
-  .div2{
-    display:grid;
-    grid-template-rows: 80% 20%;
-  }
-  .grid1{
-    display:grid;
-    grid-template-rows: repeat(10, 1fr);
-  }
-  .grid2{
-    display:flex;
-    justify-content: space-around;
-  }
-  .grid2>div{
-    background-color: #D1D8BE;
-    width: 50%;
-    padding: 10px;
-    margin-bottom: 10px;
-    border: 2px #A7C1A8 solid;
-    outline: 0;
-    border-radius: 16px;
-    display:grid;
-    grid-template-rows: 80% 20%;
-  }
-  .botton{
-    display:flex;
-    justify-self: end;
-  }
-  .msgPregunta{
-    display:flex;
-    justify-self: end;
-    background-color: #819A91;
-    padding: 10px;
-    margin-right: 2%;
-    border-radius: 16px;
-  }
-  .msgRespuesta{
-    display:flex;
-    justify-self: start;
-    background-color: #819A91;
-    padding: 10px;
-    margin-right: 2%;
-    border-radius: 16px;
-  }
 
-  ._7436101 {
-    white-space: nowrap;
-    cursor: pointer;
-    color: #fff;
-    background: #4d6bfe;
-    border: none;
-    border-radius: 16px;
-    flex-direction: column;
-    flex-shrink: 0;
-    justify-content: center;
-    align-items: center;
-    min-width: 32px;
-    height: 32px;
-    margin-top: auto;
-    display: flex
-}
-
-._7436101:hover {
-    background-color: #2563eb
-}
-
-._7436101 ._6f28693 {
-    justify-content: center;
-    align-items: center;
-    min-width: 28px;
-    height: 28px;
-    display: flex
-}
-
-._7436101 ._6f28693>svg {
-    width: calc(var(--ds-font-size-l) + 4px);
-    height: calc(var(--ds-font-size-l) + 4px);
-    flex-shrink: 0
-}
-
-  [name="pregunta"]{
-    display: flex;
-    width:100%;
-    background-color: rgba(0, 0, 0, 0);
-    outline: 0;
-    border:0;
-    text-align: start ;
-
-  }
-  .toast{
-    position: fixed;
-    bottom: 10px;
-    right: 10px;
-    background-color: #A7C1A8;
-    border: 2px solid #819A91;
-    border-radius: 16px;
-    padding: 10px 40px;
-    animation: toastAnim 600ms ease-in-out ;
-  }
-  .toast:hover{
-    background-color: #666;
-    transition: 300ms;
-  }
-
-  @keyframes toastAnim {
-    from {
-      transform: translateY(40%);
-    } 
-    to {
-      transform: translateY(0)
-    }
-  }
-</style>
-<!-- <h1>Modelo de Pregunta y Respuesta</h1>
-
-<label for="fileInput">Subir archivo (.txt o .pdf):</label>
-<input type="file" id="fileInput" accept=".txt,application/pdf" onchange="leerArchivo(event)">
-
-<label for="passage">Texto:</label>
-<textarea id="passage" rows="10" placeholder="Pega aquí el texto sobre el que quieres hacer preguntas...">Google LLC is an American multinational technology company that focuses on search engine technology, online advertising, cloud computing, computer software, quantum computing, e-commerce, artificial intelligence, and consumer electronics. It has been referred to as the "most powerful company in the world" and one of the world's most valuable brands due to its market dominance, data collection, and technological advantages in the area of artificial intelligence. Google was founded in 1998 by Larry Page and Sergey Brin while they were Ph.D. students at Stanford University in California.</textarea>
-
-<label for="question">Pregunta (en español):</label>
-<input type="text" id="question" placeholder="¿Quién fundó Google?" onkeypress="if(event.key==='Enter') preguntar()">
-
-<button id="buscarBtn" onclick="preguntar()">Buscar respuesta</button>
-
-<div id="respuesta">Respuesta: <span class="loading">Cargando modelo...</span></div>
-
-<div id="historial">
-  <h3>Historial:</h3>
-  <ul id="listaHistorial"></ul>
-</div> -->
 <script src="env.js"></script>
 <script src="script.js"></script>
 </body>
