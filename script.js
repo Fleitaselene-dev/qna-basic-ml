@@ -41,8 +41,21 @@ function toast(texto) {
 
 async function traducir(texto, desde = "es", a = "en") {
   try {
-    const response = await fetch("https://translation.googleapis.com/language/translate/v2", {
-      method: "POST",
+    const detect = await fetch("https://translation.googleapis.com/language/translate/v2/detect",{
+      method:"POST",
+      headers:{
+        "Content-Type":"application/json",
+        "x-goog-api-key":API_KEY
+      },
+      body: JSON.stringify({
+        q:texto,
+      })
+    })
+    const lenguaje = await detect.json().data.detections[0][0].language
+
+    if (lenguaje !== "en"){
+      var response = await fetch("https://translation.googleapis.com/language/translate/v2", {
+        method: "POST",
       headers: {
         "Content-Type": "application/json",
         "x-goog-api-key": API_KEY
@@ -53,10 +66,10 @@ async function traducir(texto, desde = "es", a = "en") {
         format: "text"
       })
     });
+  }
 
-    if (!response.ok) throw new Error(`Error de traducción: ${response.status}`);
-
-    const data = await response.json();
+  if (!response.ok) throw new Error(`Error de traducción: ${response.status}`);
+  const data = await response.json();
     return data.data.translations[0].translatedText || texto;
   } catch (error) {
     console.warn("Error en traducción, usando texto original:", error);
