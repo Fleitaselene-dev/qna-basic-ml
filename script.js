@@ -51,9 +51,8 @@ async function traducir(texto, desde = "es", a = "en") {
         q:texto,
       })
     })
-    const lenguaje = await detect.json().data.detections[0][0].language
-
-    if (lenguaje !== "en"){
+    const lenguaje = await detect.json().then((json)=>json.data.detections[0][0].language)
+    if (lenguaje !== a){
       var response = await fetch("https://translation.googleapis.com/language/translate/v2", {
         method: "POST",
       headers: {
